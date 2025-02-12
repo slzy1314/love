@@ -11,7 +11,10 @@
             padding: 0;
             overflow: hidden;
             /* background-color: #FFFFE0; */
-            background-image: url('./image/520.jpg')
+            background-image: url('./image/520.jpg');
+            background-size: cover; /* 图片覆盖整个元素，可能会裁剪部分图片 */
+            background-position: center; /* 图片居中显示 */
+            background-repeat: no-repeat; /* 图片不重复 */
         }
 
         canvas {
@@ -83,7 +86,7 @@
                 // 随机生成图片的基准大小
                 this.baseSize = Math.random() * 250 + 150;
                 // 随机生成图片下落的速度
-                this.speed = Math.random() * 2 + 1;
+                this.speed = 2 + 1;
                 this.image = image;
                 // 计算图片的宽高比
                 this.aspectRatio = image.width / image.height;
@@ -107,8 +110,26 @@
                 this.y += this.speed;
                 // 如果图片超出画布底部，重新设置其位置
                 if (this.y > canvas.height) {
-                    this.y = 0;
-                    this.x = Math.random() * canvas.width;
+                    let isOverlap;
+                    do {
+                        isOverlap = false;
+                        this.y = 0;
+                        this.x = Math.random() * canvas.width;
+                        // 检查是否与其他图片重叠
+                        for (let i = 0; i < imageItems.length; i++) {
+                            if (imageItems[i] !== this) {
+                                if (
+                                    this.x < imageItems[i].x + imageItems[i].width &&
+                                    this.x + this.width > imageItems[i].x &&
+                                    this.y < imageItems[i].y + imageItems[i].height &&
+                                    this.y + this.height > imageItems[i].y
+                                ) {
+                                    isOverlap = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } while (isOverlap);
                 }
             }
         }
