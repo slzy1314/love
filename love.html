@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爱心墙</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* background-color: #FFFFE0; */
+            background-image: url('./image/520.jpg')
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="loveWall"></canvas>
+    <script>
+        // 获取画布和绘图上下文
+        const canvas = document.getElementById('loveWall');
+        const ctx = canvas.getContext('2d');
+
+        // 设置画布大小为窗口大小
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 定义爱心类
+        class Heart {
+            constructor() {
+                // 随机生成爱心的初始位置
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                // 随机生成爱心的大小
+                this.size = Math.random() * 20 + 10;
+                // 随机生成爱心下落的速度
+                this.speed = Math.random() * 2 + 1;
+                // 随机生成爱心的颜色
+                this.color = `rgba(255, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, ${Math.random()})`;
+            }
+
+            // 绘制爱心的方法
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.bezierCurveTo(
+                    this.x + this.size / 2, this.y - this.size / 2,
+                    this.x + this.size, this.y + this.size / 3,
+                    this.x, this.y + this.size
+                );
+                ctx.bezierCurveTo(
+                    this.x - this.size, this.y + this.size / 3,
+                    this.x - this.size / 2, this.y - this.size / 2,
+                    this.x, this.y
+                );
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            // 更新爱心位置的方法
+            update() {
+                this.y += this.speed;
+                // 如果爱心超出画布底部，重新设置其位置
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        // 定义图片类
+        class ImageItem {
+            constructor(image) {
+                // 随机生成图片的初始位置
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                // 随机生成图片的基准大小
+                this.baseSize = Math.random() * 250 + 150;
+                // 随机生成图片下落的速度
+                this.speed = Math.random() * 2 + 1;
+                this.image = image;
+                // 计算图片的宽高比
+                this.aspectRatio = image.width / image.height;
+                // 根据宽高比计算绘制时的宽度和高度
+                if (this.aspectRatio >= 1) {
+                    this.width = this.baseSize;
+                    this.height = this.baseSize / this.aspectRatio;
+                } else {
+                    this.height = this.baseSize;
+                    this.width = this.baseSize * this.aspectRatio;
+                }
+            }
+
+            // 绘制图片的方法
+            draw() {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            }
+
+            // 更新图片位置的方法
+            update() {
+                this.y += this.speed;
+                // 如果图片超出画布底部，重新设置其位置
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        // 创建爱心数组
+        const hearts = [];
+        const numHearts = 100;
+        for (let i = 0; i < numHearts; i++) {
+            hearts.push(new Heart());
+        }
+
+        // 图片数组
+        const images = [];
+        const imageUrls = [
+            './image/栗子1.jpg',
+            './image/栗子2.jpg',
+            './image/栗子3.jpg',
+            './image/栗子4.jpg',
+            './image/栗子5.jpg',
+            './image/栗子6.jpg'
+        ];
+        const imageItems = [];
+
+        // 加载图片
+        imageUrls.forEach(url => {
+            const image = new Image();
+            image.src = url;
+            images.push(image);
+        });
+
+        // 等待所有图片加载完成
+        Promise.all(images.map(img => new Promise(resolve => img.onload = resolve)))
+           .then(() => {
+                // 创建图片对象
+                images.forEach(img => {
+                    imageItems.push(new ImageItem(img));
+                });
+
+                // 动画循环函数
+                function animate() {
+                    // 清除画布
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // 遍历爱心数组，绘制并更新每个爱心的位置
+                    for (let i = 0; i < hearts.length; i++) {
+                        hearts[i].draw();
+                        hearts[i].update();
+                    }
+
+                    // 遍历图片数组，绘制并更新每个图片的位置
+                    for (let i = 0; i < imageItems.length; i++) {
+                        imageItems[i].draw();
+                        imageItems[i].update();
+                    }
+
+                    // 请求下一帧动画
+                    requestAnimationFrame(animate);
+                }
+
+                // 启动动画
+                animate();
+            });
+
+        // 监听窗口大小变化事件，更新画布大小
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>
