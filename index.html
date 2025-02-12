@@ -78,7 +78,7 @@
         class ImageItem {
             constructor(image) {
                 this.baseSize = Math.random() * (isMobile? 150 : 250) + (isMobile? 100 : 150);
-                this.speed = Math.random() * (isMobile? 1 : 2) + (isMobile? 0.5 : 1);
+                this.speed = Math.random() * (isMobile? 1 : 2) + (isMobile? 1 : 2);
                 this.image = image;
                 this.aspectRatio = image.width / image.height;
                 if (this.aspectRatio >= 1) {
