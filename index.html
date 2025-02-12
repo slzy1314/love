@@ -3,18 +3,17 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user - scalable=no">
     <title>爱心墙</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            /* background-color: #FFFFE0; */
             background-image: url('./image/520.jpg');
-            background-size: cover; /* 图片覆盖整个元素，可能会裁剪部分图片 */
-            background-position: center; /* 图片居中显示 */
-            background-repeat: no-repeat; /* 图片不重复 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         canvas {
@@ -31,8 +30,16 @@
         const ctx = canvas.getContext('2d');
 
         // 设置画布大小为窗口大小
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setCanvasSize();
+
+        // 根据设备性能调整爱心和图片数量
+        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        const numHearts = isMobile? 50 : 100;
+        const numImages = isMobile? 3 : 7;
 
         // 定义爱心类
         class Heart {
@@ -86,7 +93,7 @@
                 // 随机生成图片的基准大小
                 this.baseSize = Math.random() * 250 + 150;
                 // 随机生成图片下落的速度
-                this.speed = 2 + 1;
+                this.speed = Math.random() * 2 + 1;
                 this.image = image;
                 // 计算图片的宽高比
                 this.aspectRatio = image.width / image.height;
@@ -117,7 +124,7 @@
                         this.x = Math.random() * canvas.width;
                         // 检查是否与其他图片重叠
                         for (let i = 0; i < imageItems.length; i++) {
-                            if (imageItems[i] !== this) {
+                            if (imageItems[i]!== this) {
                                 if (
                                     this.x < imageItems[i].x + imageItems[i].width &&
                                     this.x + this.width > imageItems[i].x &&
@@ -136,21 +143,16 @@
 
         // 创建爱心数组
         const hearts = [];
-        const numHearts = 100;
         for (let i = 0; i < numHearts; i++) {
             hearts.push(new Heart());
         }
 
         // 图片数组
         const images = [];
-        const imageUrls = [
-            './image/栗子1.jpg',
-            './image/栗子2.jpg',
-            './image/栗子3.jpg',
-            './image/栗子4.jpg',
-            './image/栗子5.jpg',
-            './image/栗子6.jpg'
-        ];
+        const imageUrls = [];
+        for (let i = 1; i <= numImages; i++) {
+            imageUrls.push(`./image/栗子${i}.jpg`);
+        }
         const imageItems = [];
 
         // 加载图片
@@ -162,7 +164,7 @@
 
         // 等待所有图片加载完成
         Promise.all(images.map(img => new Promise(resolve => img.onload = resolve)))
-           .then(() => {
+          .then(() => {
                 // 创建图片对象
                 images.forEach(img => {
                     imageItems.push(new ImageItem(img));
@@ -195,8 +197,7 @@
 
         // 监听窗口大小变化事件，更新画布大小
         window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            setCanvasSize();
         });
     </script>
 </body>
