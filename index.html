@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user - scalable=no">
-    <title>爱心墙</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>栗子吖</title>
     <style>
         body {
             margin: 0;
@@ -25,37 +25,30 @@
 <body>
     <canvas id="loveWall"></canvas>
     <script>
-        // 获取画布和绘图上下文
         const canvas = document.getElementById('loveWall');
         const ctx = canvas.getContext('2d');
 
-        // 设置画布大小为窗口大小
         function setCanvasSize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         setCanvasSize();
 
-        // 根据设备性能调整爱心和图片数量
         const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        const numHearts = isMobile? 50 : 100;
-        const numImages = isMobile? 3 : 7;
+        // 根据设备类型调整元素数量
+        const numHearts = isMobile? 30 : 100;
+        const numImages = isMobile? 2 : 7;
+        const numMeteors = isMobile? 10 : 40;
 
-        // 定义爱心类
         class Heart {
             constructor() {
-                // 随机生成爱心的初始位置
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
-                // 随机生成爱心的大小
-                this.size = Math.random() * 20 + 10;
-                // 随机生成爱心下落的速度
-                this.speed = Math.random() * 2 + 1;
-                // 随机生成爱心的颜色
+                this.size = Math.random() * (isMobile? 15 : 20) + (isMobile? 5 : 10);
+                this.speed = Math.random() * (isMobile? 1 : 2) + (isMobile? 0.5 : 1);
                 this.color = `rgba(255, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, ${Math.random()})`;
             }
 
-            // 绘制爱心的方法
             draw() {
                 ctx.beginPath();
                 ctx.moveTo(this.x, this.y);
@@ -73,10 +66,8 @@
                 ctx.fill();
             }
 
-            // 更新爱心位置的方法
             update() {
                 this.y += this.speed;
-                // 如果爱心超出画布底部，重新设置其位置
                 if (this.y > canvas.height) {
                     this.y = 0;
                     this.x = Math.random() * canvas.width;
@@ -84,20 +75,12 @@
             }
         }
 
-        // 定义图片类
         class ImageItem {
             constructor(image) {
-                // 随机生成图片的初始位置
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                // 随机生成图片的基准大小
-                this.baseSize = Math.random() * 250 + 150;
-                // 随机生成图片下落的速度
-                this.speed = Math.random() * 2 + 1;
+                this.baseSize = Math.random() * (isMobile? 150 : 250) + (isMobile? 100 : 150);
+                this.speed = Math.random() * (isMobile? 1 : 2) + (isMobile? 0.5 : 1);
                 this.image = image;
-                // 计算图片的宽高比
                 this.aspectRatio = image.width / image.height;
-                // 根据宽高比计算绘制时的宽度和高度
                 if (this.aspectRatio >= 1) {
                     this.width = this.baseSize;
                     this.height = this.baseSize / this.aspectRatio;
@@ -105,49 +88,81 @@
                     this.height = this.baseSize;
                     this.width = this.baseSize * this.aspectRatio;
                 }
+                this.setInitialPosition();
             }
 
-            // 绘制图片的方法
+            setInitialPosition() {
+                let isOverlap;
+                do {
+                    isOverlap = false;
+                    this.x = Math.random() * (canvas.width - this.width);
+                    this.y = -this.height;
+                    for (let i = 0; i < imageItems.length; i++) {
+                        if (imageItems[i]!== this) {
+                            if (
+                                this.x < imageItems[i].x + imageItems[i].width &&
+                                this.x + this.width > imageItems[i].x &&
+                                this.y < imageItems[i].y + imageItems[i].height &&
+                                this.y + this.height > imageItems[i].y
+                            ) {
+                                isOverlap = true;
+                                break;
+                            }
+                        }
+                    }
+                } while (isOverlap);
+            }
+
             draw() {
                 ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
             }
 
-            // 更新图片位置的方法
             update() {
                 this.y += this.speed;
-                // 如果图片超出画布底部，重新设置其位置
                 if (this.y > canvas.height) {
-                    let isOverlap;
-                    do {
-                        isOverlap = false;
-                        this.y = 0;
-                        this.x = Math.random() * canvas.width;
-                        // 检查是否与其他图片重叠
-                        for (let i = 0; i < imageItems.length; i++) {
-                            if (imageItems[i]!== this) {
-                                if (
-                                    this.x < imageItems[i].x + imageItems[i].width &&
-                                    this.x + this.width > imageItems[i].x &&
-                                    this.y < imageItems[i].y + imageItems[i].height &&
-                                    this.y + this.height > imageItems[i].y
-                                ) {
-                                    isOverlap = true;
-                                    break;
-                                }
-                            }
-                        }
-                    } while (isOverlap);
+                    this.setInitialPosition();
+                }
+                if (this.x < 0) {
+                    this.x = 0;
+                }
+                if (this.x + this.width > canvas.width) {
+                    this.x = canvas.width - this.width;
                 }
             }
         }
 
-        // 创建爱心数组
+        class Meteor {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = -Math.random() * canvas.height;
+                this.speedX = Math.random() * (isMobile? 3 : 5) + (isMobile? 1 : 2);
+                this.speedY = Math.random() * (isMobile? 3 : 5) + (isMobile? 1 : 2);
+                this.size = Math.random() * (isMobile? 2 : 3) + (isMobile? 0.5 : 1);
+                this.color = `rgba(255, 255, 255, ${Math.random()})`;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y > canvas.height || this.x > canvas.width) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = -Math.random() * canvas.height;
+                }
+            }
+        }
+
         const hearts = [];
         for (let i = 0; i < numHearts; i++) {
             hearts.push(new Heart());
         }
 
-        // 图片数组
         const images = [];
         const imageUrls = [];
         for (let i = 1; i <= numImages; i++) {
@@ -155,47 +170,47 @@
         }
         const imageItems = [];
 
-        // 加载图片
+        const meteors = [];
+        for (let i = 0; i < numMeteors; i++) {
+            meteors.push(new Meteor());
+        }
+
         imageUrls.forEach(url => {
             const image = new Image();
             image.src = url;
             images.push(image);
         });
 
-        // 等待所有图片加载完成
         Promise.all(images.map(img => new Promise(resolve => img.onload = resolve)))
           .then(() => {
-                // 创建图片对象
                 images.forEach(img => {
                     imageItems.push(new ImageItem(img));
                 });
 
-                // 动画循环函数
                 function animate() {
-                    // 清除画布
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    // 遍历爱心数组，绘制并更新每个爱心的位置
-                    for (let i = 0; i < hearts.length; i++) {
-                        hearts[i].draw();
-                        hearts[i].update();
-                    }
+                    hearts.forEach(heart => {
+                        heart.draw();
+                        heart.update();
+                    });
 
-                    // 遍历图片数组，绘制并更新每个图片的位置
-                    for (let i = 0; i < imageItems.length; i++) {
-                        imageItems[i].draw();
-                        imageItems[i].update();
-                    }
+                    imageItems.forEach(imageItem => {
+                        imageItem.draw();
+                        imageItem.update();
+                    });
 
-                    // 请求下一帧动画
+                    meteors.forEach(meteor => {
+                        meteor.draw();
+                        meteor.update();
+                    });
+
                     requestAnimationFrame(animate);
                 }
 
-                // 启动动画
                 animate();
             });
 
-        // 监听窗口大小变化事件，更新画布大小
         window.addEventListener('resize', () => {
             setCanvasSize();
         });
